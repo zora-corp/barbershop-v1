@@ -36,7 +36,8 @@ for im in Path(args.unprocessed_dir).glob("*.*"):
     faces = align_face(str(im),predictor)
 
     for i,face in enumerate(faces):
-        if(args.output_size):
+        # noinspection DuplicatedCode
+        if args.output_size:
             factor = 1024//args.output_size
             assert args.output_size*factor == 1024
             face_tensor = torchvision.transforms.ToTensor()(face).unsqueeze(0).cuda()

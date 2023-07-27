@@ -19,10 +19,10 @@ def update_arguments(args, session, host, record_id):
 
     response = session.get(detail_endpoint)
     data = response.json()
-    provided_arguments = data['programArguments']
+    provided_arguments = data['processArguments']
 
     d = vars(args)
-    for k, v in provided_arguments.iteritems():
+    for k, v in provided_arguments.items():
         d[k] = v
     return data
 
@@ -64,26 +64,26 @@ def main(args):
     token = args.api_access_token
 
     session = requests.Session()
-    session.headers.update({'Auth': f"Bearer {token}"})
+    session.headers.update({'Authorization': f"Bearer {token}"})
 
     # Update Arguments
     data = update_arguments(args, session, host, record_id)  # extension .png
-    identity_file = f"{record_id}i.{data['identityImage']['extension']}"
-    structure_file = f"{record_id}s.{data['structureImage']['extension']}"
-    appearance_file = f"{record_id}a.{data['appearanceImage']['extension']}"
+    identity_file = f"{record_id}i.png"
+    structure_file = f"{record_id}s.png"
+    appearance_file = f"{record_id}a.png"
 
     # Download files
-    download_file(f"unprocessed/{identity_file}", data['identityImage']['url'])
-    download_file(f"unprocessed/{structure_file}", data['structureImage']['url'])
-    download_file(f"unprocessed/{appearance_file}", data['appearanceImage']['url'])
+    download_file(f"unprocessed/{identity_file}", data['identityImage']['publicUrl'])
+    download_file(f"unprocessed/{structure_file}", data['structureImage']['publicUrl'])
+    download_file(f"unprocessed/{appearance_file}", data['appearanceImage']['publicUrl'])
 
     d = vars(args)
 
     # Align The Images
-    cache_dir = args.cache_dir
+    cache_dir = Path(args.cache_dir)
     cache_dir.mkdir(parents=True, exist_ok=True)
     print("Downloading Shape Predictor")
-    f = open_url("https://drive.google.com/uc?id=1huhv8PYpNNKbGCLOaYUjOgR1pY5pmbJx", cache_dir=cache_dir,
+    f = open_url("https://drive.google.com/uc?id=1huhv8PYpNNKbGCLOaYUjOgR1pY5pmbJx", cache_dir=args.cache_dir,
                  return_path=True)
     predictor = dlib.shape_predictor(f)
     dst_dir = args.input_dir
@@ -229,9 +229,13 @@ if __name__ == "__main__":
     # host = args.api_host
     # record_id = args.api_record_id
     # token = args.api_access_token
-    parser.add_argument('--api_host', type=str)
-    parser.add_argument('--api_record_id', type=str)
-    parser.add_argument('--api_access_token', type=str)
+    parser.add_argument('--api_host', type=str, default="dev-api-v3.silverbird.io")
+    parser.add_argument('--api_record_id', type=str, default="876")
+    parser.add_argument('--api_access_token', type=str, default='eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiIxNyIsImV4cCI6MTY5MDU4MDEyOSwiaWF0IjoxNjkwNDA3MzI5fQ.14HurYywMenuTjhPinoAWsmo6072txq0g4nGChrLouUU8SMg6kPdzDjcZbZPm8GgnM_5I-4YfluZ03xS7AY8zA')
+
+    parser.add_argument('-cache_dir', type=str, default='cache', help='cache directory for model weights')
+    parser.add_argument('-output_size', type=int, default=1024,
+                        help='size to downscale the input images to, must be power of 2')
 
     parsed_args = parser.parse_args()
     main(parsed_args)

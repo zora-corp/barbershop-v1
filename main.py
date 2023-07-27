@@ -36,6 +36,7 @@ def download_file(file_path, url):
 
 
 def upload_file(file_path, file_name, mime, url, data=None, session=requests.Session()):
+    print(f"Uploading {file_path} {file_name} to {url}")
     files = {'upload_file': (file_name, open(file_path, 'rb'), mime)}
     response = session.put(url, files=files, data=data)
     pass
@@ -124,12 +125,12 @@ def main(args):
 
     # Upload result image
     save_dir = os.path.join(args.output_dir, 'Blend_{}'.format(args.sign))
-    image_path = os.path.join(save_dir, '{}_{}_{}.png'.format(identity_file, structure_file, appearance_file))
+    image_path = os.path.join(save_dir, f'{record_id}i_{record_id}s_{record_id}a.png')
 
     # The final endpoint should be called at end,
     # because it'll mark the style as completed
     final_image_endpoint = f"https://{host}/api/v3/gan-based-generated-styles/{record_id}/finalImage"
-    upload_file(image_path, f'{identity_file}_{structure_file}_{appearance_file}.png',
+    upload_file(image_path, f'{record_id}i_{record_id}s_{record_id}a_{args.sign}.png',
                 'image/png', final_image_endpoint,
                 session=session)
 
